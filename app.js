@@ -1,4 +1,4 @@
-import { ethers } from "https://cloudflare.com";
+import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.min.js";
 
 // ====================== CONFIG ======================
 const NFT_ADDRESS = "0x0000000000000000000000000000000000000000"; 
@@ -278,10 +278,7 @@ async function loadAllData() {
 // ====================== SELECTION UTILITY ======================
 function toggleSelect(element, set) {
   const id = element.dataset.id;
-  if (set.has(id)) {
-    // ====================== SELECTION UTILITY ======================
-function toggleSelect(element, set) {
-  const id = element.dataset.id;
+
   if (set.has(id)) {
     set.delete(id);
     element.classList.remove("selected");
@@ -290,5 +287,6 @@ function toggleSelect(element, set) {
     element.classList.add("selected");
   }
 }
+
 
 
