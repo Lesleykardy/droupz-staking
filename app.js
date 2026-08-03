@@ -1,4 +1,6 @@
-import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.min.js";
+import { ethers } from "https://esm.sh/ethers@6";
+
+console.log("app.js loaded");
 
 // ====================== CONFIG ======================
 const NFT_ADDRESS = "0x0000000000000000000000000000000000000000"; 
@@ -41,6 +43,27 @@ const toast = (msg) => {
 
 // ====================== MAIN EXECUTION BLOCK ======================
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded");
+
+  if ($("connectBtn")) {
+    console.log("Found connect button");
+
+    $("connectBtn").onclick = function () {
+      console.log("Connect button clicked");
+
+      if (!$("walletModal")) {
+        console.error("walletModal not found");
+        return;
+      }
+
+      $("walletModal").classList.remove("hidden");
+    };
+  } else {
+    console.error("connectBtn not found");
+  }
+
+  // ...rest of your code...
+});
   
   // 1. OPEN CUSTOM SELECTION MODAL POPUP
   if ($("connectBtn")) {
@@ -85,6 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
+        console.log("Selected wallet:", walletType);
+        console.log("window.ethereum:", window.ethereum);
+        console.log("Selected provider:", selectedProvider);
         provider = new ethers.BrowserProvider(selectedProvider);
         const accounts = await provider.send("eth_requestAccounts", []);
         
