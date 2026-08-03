@@ -112,8 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
 
-        stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
-        nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
+        // stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
+        // nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
 
         if ($("connectBtn")) {
           $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         toast("Wallet connected ✓");
-        await loadAllData();
+        // await loadAllData();
         
       } catch (err) {
         console.error("User connection routine aborted:", err);
