@@ -1,3 +1,5 @@
+const ethers = window.ethers;
+
 // ====================== CONFIG ======================
 // IMPORTANT: Replace these with your actual smart contract addresses!
 const NFT_ADDRESS = "0x0000000000000000000000000000000000000000"; 
