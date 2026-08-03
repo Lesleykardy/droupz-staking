@@ -78,27 +78,44 @@ document.addEventListener("DOMContentLoaded", () => {
       const walletType = btn.getAttribute("data-wallet").toLowerCase();
       $("walletModal").classList.add("hidden"); 
 
-      let selectedProvider = window.ethereum;
+      let selectedProvider = null;
+    
+     const providers = window.ethereum?.providers || [window.ethereum];
 
-      if (walletType === "metamask" && window.ethereum?.isMetaMask) {
-        selectedProvider = window.ethereum;
-      } else if (walletType === "zerion" && window.ethereum?.isZerion) {
-        selectedProvider = window.ethereum;
-      } else if (window.ethereum?.providers) {
-        selectedProvider = window.ethereum.providers.find(p => {
-          if (walletType === "metamask" && p.isMetaMask) return true;
-          if (walletType === "zerion" && p.isZerion) return true;
-          if (walletType === "trust" && p.isTrust) return true;
-          if (walletType === "okx" && p.isOKX) return true; 
-          if (walletType === "rabby" && p.isRabby) return true;
-          return false;
-        }) || window.ethereum;
-      }
+     for (const p of providers) {
 
-      if (!selectedProvider) {
-        alert(`Please make sure your wallet extension is turned on and active!`);
-        return;
-      }
+      if (walletType === "metamask" && p.isMetaMask) {
+       selectedProvider = p;
+      break;
+    }
+
+    if (walletType === "zerion" && p.isZerion) {
+      selectedProvider = p;
+     break;
+   }
+
+   if (walletType === "trust" && p.isTrust) {
+     selectedProvider = p;
+     break;
+   }
+
+   if (walletType === "rabby" && p.isRabby) {
+     selectedProvider = p;
+     break;
+   }
+
+   if (walletType === "okx" && p.isOKX) {
+     selectedProvider = p;
+     break;
+   }
+ }
+
+  if (!selectedProvider) {
+   console.error("Wallet not detected:", walletType);
+   alert(`${walletType} wallet not installed`);
+   return;
+  }
+      
 
       try {
         console.log("Selected wallet:", walletType);
