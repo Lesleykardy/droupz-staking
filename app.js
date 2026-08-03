@@ -1,7 +1,7 @@
 // Ensure Ethers mounts and unpacks all internal sub-classes safely for standard browsers
 const ethers = window.ethers;
-const BrowserProvider = window.ethers?.BrowserProvider || window.ethers?.providers?.BrowserProvider;
-const Contract = window.ethers?.Contract;
+const BrowserProvider = window.ethers ? window.ethers.BrowserProvider : null;
+const Contract = window.ethers ? window.ethers.Contract : null;
 
 // ====================== CONFIG ======================
 // IMPORTANT: Replace these with your actual smart contract addresses!
