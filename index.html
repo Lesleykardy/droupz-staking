@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Staking | Champagne rewards</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-glow"></div>
+    
+    <header>
+        <div class="logo">
+            <span class="logo-icon">🍾</span>
+            <span>VIP STAKING</span>
+        </div>
+        <!-- This ID triggers the popup menu -->
+        <button id="connectBtn" class="connect-btn">Connect Wallet</button>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Stake. Pop. Earn</h1>
+            <p>Stake your NFTs and earn real RWA rewards from 15% of the collection royalties.</p>
+        </div>
+
+        <div class="hero-art">
+            <img src="images/main.jpg" alt="VIP Character">
+        </div>
+    </section>
+
+    <main class="dashboard">
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="label">Your Staked</span>
+                <span class="value" id="stakedCount">0</span>
+            </div>
+            <div class="stats-card">
+                <span class="label">Total Staked</span>
+                <span class="value" id="totalStaked">0</span>
+            </div>
+            <div class="stat-card gold">
+                <span class="label">Pending Rewards</span>
+                <span class="value" id="pendingRewards">0.00</span>
+            </div>
+        </div>
+
+        <!-- Staking Grid Panel -->
+        <div class="actions">
+            
+            <!-- Left Panel: Unstaked Inventory -->
+            <div class="action-card">
+                <h3>Your Wallet NFTs</h3>
+                <p>Select the token IDs you wish to stake</p>
+                <div id="nftGrid" class="nft-grid">
+                    <div class="empty">Connect your wallet to load NFTs</div>
+                </div>
+                <div class="btn-row">
+                    <button id="stakeBtn" class="btn primary" disabled>Stake Selected</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Active Staked Items -->
+            <div class="action-card">
+                <h3>Current Staked</h3>
+                <p>Token IDs of your staked NFTs</p>
+                <div id="stakedGrid" class="nft-grid">
+                    <div class="empty">No NFTs staked yet</div>
+                </div>
+                <div class="btn-row">
+                    <button id="unstakedBtn" class="btn secondary" disabled>Unstake Selected</button>
+                    <button id="claimBtn" class="btn gold" disabled>Claim All Rewards</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    
+    <!-- Custom Wallet Modal System -->
+    <div id="walletModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Connect Wallet</h3>
+                <!-- Fixed modal exit identification anchor -->
+                <button class="close-modal" id="closeModal">×</button>
+            </div>
+
+            <div class="wallet-list">
+                <!-- MetaMask -->
+                <button class="wallet-option" data-wallet="metamask">
+                    <img src="https://wikimedia.org" alt="MetaMask">
+                    <span>MetaMask</span>
+                </button>
+
+                <!-- Zerion -->
+                <button class="wallet-option" data-wallet="zerion">
+                    <img src="https://zerion.io" alt="Zerion">
+                    <span>Zerion</span>
+                </button>
+
+                <!-- Trust Wallet -->
+                <button class="wallet-option" data-wallet="trust">
+                    <img src="https://trustwallet.com" alt="Trust Wallet">
+                    <span>Trust Wallet</span>
+                </button>
+
+                <!-- OKX Wallet -->
+                <button class="wallet-option" data-wallet="okx">
+                    <img src="https://okx.com" alt="OKX">
+                    <span>OKX Wallet</span>
+                </button>
+
+                <!-- Rabby -->
+                <button class="wallet-option" data-wallet="rabby">
+                    <img src="https://rabby.io" alt="Rabby">
+                    <span>Rabby</span>
+                </button>
+
+                <!-- WalletConnect -->
+                <button class="wallet-option" data-wallet="walletconnect">
+                    <img src="https://githubusercontent.com" alt="WalletConnect">
+                    <span>WalletConnect</span>
+                </button>
+            </div>
+            <p class="modal-note">Robinhood Chain will be added automatically if needed.</p>
+        </div>
+    </div>
+
+     <div id="toast" class="toast hidden"></div>
+
+     <!-- External Utilities -->
+     <script src="ethers.min.js"></script>
+     
+     <!-- The script reference must use the 'defer' keyword -->
+     <script src="app.js"></script> 
+
+</body>
+</html>
