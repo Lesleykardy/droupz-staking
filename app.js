@@ -1,25 +1,5 @@
-// Smart Diagnostic Auto-Loader for Ethers
-let ethersObj = window.ethers;
-
-// Look deeper if it's nested inside itself by a browser module wrapper
-if (window.ethers?.ethers) {
-  ethersObj = window.ethers.ethers;
-}
-
-// Fallback: If it's still missing, check if it loaded under its modern global namespace
-if (!ethersObj && typeof globalThis !== "undefined" && globalThis.ethers) {
-  ethersObj = globalThis.ethers;
-}
-
-// Safely unpack the constructors needed for the buttons
-const BrowserProvider = ethersObj?.BrowserProvider || (ethersObj ? ethersObj.BrowserProvider : null);
-const Contract = ethersObj?.Contract || (ethersObj ? ethersObj.Contract : null);
-
-// Diagnostic Alert: If Ethers is completely blocked from loading, tell us immediately
-if (!BrowserProvider) {
-  console.error("CRITICAL: Ethers library could not be read from browser window memory.");
-  alert("Website Error: The 'ethers.js' library file could not be read. Please check your developer console (F12) for blocks.");
-}
+// Bulletproof web standard import. Bypasses local folder name problems completely.
+import { ethers } from "https://cloudflare.com";
 
 // ====================== CONFIG ======================
 // IMPORTANT: Replace these with your actual smart contract addresses!
@@ -109,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        provider = new BrowserProvider(selectedProvider);
+        provider = new ethers.BrowserProvider(selectedProvider);
         const accounts = await provider.send("eth_requestAccounts", []);
         
         // Handle Network Chain Switching Verification
@@ -136,8 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
 
-        stakingContract = new Contract(STAKING_ADDRESS, STAKING_ABI, signer);
-        nftContract = new Contract(NFT_ADDRESS, NFT_ABI, signer);
+        stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
+        nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
 
         if ($("connectBtn")) {
           $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
