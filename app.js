@@ -3,8 +3,8 @@ import { ethers } from "https://esm.sh/ethers@6";
 console.log("app.js loaded");
 
 // ====================== CONFIG ======================
-const NFT_ADDRESS = "0x0000000000000000000000000000000000000000"; 
-const STAKING_ADDRESS = "0x0000000000000000000000000000000000000000";
+const NFT_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167"; 
+const STAKING_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167";
 const CHAIN_ID = 4663; // Robinhood Chain
 const RPC_URL = "https://robinhood.com";
 
