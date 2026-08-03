@@ -82,37 +82,26 @@
             </div>
 
             <div class="wallet-list">
-                <!-- MetaMask -->
                 <button class="wallet-option" data-wallet="metamask">
                     <span style="font-size: 24px; margin-right: 12px;">🦊</span>
                     <span>MetaMask</span>
                 </button>
-
-                <!-- Zerion -->
                 <button class="wallet-option" data-wallet="zerion">
                     <span style="font-size: 24px; margin-right: 12px;">🧿</span>
                     <span>Zerion</span>
                 </button>
-
-                <!-- Trust Wallet -->
                 <button class="wallet-option" data-wallet="trust">
                     <span style="font-size: 24px; margin-right: 12px;">🛡️</span>
                     <span>Trust Wallet</span>
                 </button>
-
-                <!-- OKX Wallet -->
                 <button class="wallet-option" data-wallet="okx">
                     <span style="font-size: 24px; margin-right: 12px;">🖤</span>
                     <span>OKX Wallet</span>
                 </button>
-
-                <!-- Rabby -->
                 <button class="wallet-option" data-wallet="rabby">
                     <span style="font-size: 24px; margin-right: 12px;">👓</span>
                     <span>Rabby</span>
                 </button>
-
-                <!-- WalletConnect -->
                 <button class="wallet-option" data-wallet="walletconnect">
                     <span style="font-size: 24px; margin-right: 12px;">🌐</span>
                     <span>WalletConnect</span>
@@ -124,12 +113,9 @@
 
     <div id="toast" class="toast hidden"></div>
 
-    <!-- 1. Loads the copy of Ethers stored directly inside your own folder -->
-    <script src="ethers.min"></script>
-     
-    <!-- 2. Main JavaScript Logic -->
-    <script src="app.js" defer></script> 
-
+    <!-- This must have type="module" to allow the JavaScript import to work -->
+    <script src="app.js" type="module"></script> 
 </body>
 </html>
+
 
