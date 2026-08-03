@@ -1,13 +1,11 @@
-// Bulletproof web standard import. Bypasses local folder name problems completely.
 import { ethers } from "https://cloudflare.com";
 
 // ====================== CONFIG ======================
-// IMPORTANT: Replace these with your actual smart contract addresses!
+// IMPORTANT: Replace these with your actual smart contract addresses when ready!
 const NFT_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167"; 
 const STAKING_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167";
 const CHAIN_ID = 4663; // Robinhood Chain
 const RPC_URL = "https://robinhood.com";
-
 
 // ====================== ABIs ======================
 const STAKING_ABI = [
@@ -63,11 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".wallet-option").forEach((btn) => {
     btn.onclick = async () => {
       const walletType = btn.getAttribute("data-wallet").toLowerCase();
-      $("walletModal").classList.add("hidden"); // Hide selection screen immediately
+      $("walletModal").classList.add("hidden"); 
 
       let selectedProvider = window.ethereum;
 
-      // Handle specific extension provider overrides accurately
       if (walletType === "metamask" && window.ethereum?.isMetaMask) {
         selectedProvider = window.ethereum;
       } else if (walletType === "zerion" && window.ethereum?.isZerion) {
@@ -92,7 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
         provider = new ethers.BrowserProvider(selectedProvider);
         const accounts = await provider.send("eth_requestAccounts", []);
         
-        // Handle Network Chain Switching Verification
         try {
           await selectedProvider.request({
             method: "wallet_switchEthereumChain",
@@ -116,6 +112,16 @@ document.addEventListener("DOMContentLoaded", () => {
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
 
+        // Safe setup checking for real hex addresses
+        if (STAKING_ADDRESS.startsWith("0x0000") || NFT_ADDRESS.startsWith("0x0000")) {
+          if ($("connectBtn")) {
+            $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+            $("connectBtn").classList.add("connected");
+          }
+          toast("Wallet connected ✓ (Demo mode)");
+          return; // Stop here so it doesn't crash on empty dummy contract addresses
+        }
+
         stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
         nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
 
@@ -125,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         toast("Wallet connected ✓");
-         await loadAllData();
+        await loadAllData();
         
       } catch (err) {
         console.error("User connection routine aborted:", err);
@@ -204,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ====================== BACKEND TOKEN LOAD LOGIC ======================
 async function loadAllData() {
-  if (!userAddress) return;
+  if (!userAddress || !stakingContract || !nftContract) return;
   try {
     if ($("stakedCount")) {
       const stakedBal = await stakingContract.balanceOf(userAddress);
@@ -267,19 +273,3 @@ async function loadAllData() {
     if ($("claimBtn")) $("claimBtn").disabled = false;
   } catch (err) {
     console.error("Load error:", err);
-    toast("Error loading NFTs");
-  }
-}
-
-// ====================== SELECTION UTILITY ======================
-function toggleSelect(element, set) {
-  const id = element.dataset.id;
-  if (set.has(id)) {
-    set.delete(id);
-    element.classList.remove("selected");
-  } else {
-    set.add(id);
-    element.classList.add("selected");
-  }
-}
-
