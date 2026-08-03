@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIP Staking | Champagne rewards</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="bg-glow"></div>
@@ -17,7 +17,6 @@
             <span class="logo-icon">🍾</span>
             <span>VIP STAKING</span>
         </div>
-        <!-- This ID triggers the popup menu -->
         <button id="connectBtn" class="connect-btn">Connect Wallet</button>
     </header>
 
@@ -33,7 +32,6 @@
     </section>
 
     <main class="dashboard">
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="label">Your Staked</span>
@@ -49,10 +47,7 @@
             </div>
         </div>
 
-        <!-- Staking Grid Panel -->
         <div class="actions">
-            
-            <!-- Left Panel: Unstaked Inventory -->
             <div class="action-card">
                 <h3>Your Wallet NFTs</h3>
                 <p>Select the token IDs you wish to stake</p>
@@ -64,7 +59,6 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Active Staked Items -->
             <div class="action-card">
                 <h3>Current Staked</h3>
                 <p>Token IDs of your staked NFTs</p>
@@ -76,53 +70,50 @@
                     <button id="claimBtn" class="btn gold" disabled>Claim All Rewards</button>
                 </div>
             </div>
-
         </div>
     </main>
     
-    <!-- Custom Wallet Modal System -->
     <div id="walletModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Connect Wallet</h3>
-                <!-- Fixed modal exit identification anchor -->
                 <button class="close-modal" id="closeModal">×</button>
             </div>
 
             <div class="wallet-list">
                 <!-- MetaMask -->
                 <button class="wallet-option" data-wallet="metamask">
-                    <img src="https://githubusercontent.com" alt="MetaMask">
+                    <img src="https://githubusercontent.com" alt="MetaMask" style="width:32px; height:32px;">
                     <span>MetaMask</span>
                 </button>
 
                 <!-- Zerion -->
                 <button class="wallet-option" data-wallet="Zerion">
-                    <img src="https://zerion.io" alt="Zerion" style="width:32px; height:32px; border-radius:50%;">>
+                    <img src="https://coingecko.com" alt="Zerion" style="width:32px; height:32px; border-radius:50%;">
                     <span>Zerion</span>
                 </button>
 
                 <!-- Trust Wallet -->
                 <button class="wallet-option" data-wallet="trust">
-                    <img src="https://trustwallet.com" alt="Trust Wallet">
+                    <img src="https://githubusercontent.com" alt="Trust Wallet" style="width:32px; height:32px;">
                     <span>Trust Wallet</span>
                 </button>
 
                 <!-- OKX Wallet -->
                 <button class="wallet-option" data-wallet="okx">
-                    <img src="https://okx.com" alt="OKX" style="width:32px; height:32px; border-radius:50%;">
+                    <img src="https://coingecko.com" alt="OKX" style="width:32px; height:32px; border-radius:50%;">
                     <span>OKX Wallet</span>
                 </button>
 
                 <!-- Rabby -->
                 <button class="wallet-option" data-wallet="rabby">
-                    <img src="https://rabby.io" alt="Rabby">
+                    <img src="https://rabby.io" alt="Rabby" style="width:32px; height:32px;">
                     <span>Rabby</span>
                 </button>
 
                 <!-- WalletConnect -->
                 <button class="wallet-option" data-wallet="walletconnect">
-                    <img src="https://githubusercontent.com" alt="WalletConnect">
+                    <img src="https://githubusercontent.com" alt="WalletConnect" style="width:32px; height:32px;">
                     <span>WalletConnect</span>
                 </button>
             </div>
@@ -130,13 +121,12 @@
         </div>
     </div>
 
-     <div id="toast" class="toast hidden"></div>
+    <div id="toast" class="toast hidden"></div>
 
-     <!-- External Utilities -->
-     <script src="https://cloudflare.com"></script>
+    <!-- 1. Imported the official Ethers.js library safely so your app.js stops crashing -->
+    <script src="https://cloudflare.com"></script>
      
-     <!-- The script reference must use the 'defer' keyword -->
-     <script src="app.js"></script> 
-
+    <!-- 2. Main JavaScript Logic -->
+    <script src="app.js" defer></script> 
 </body>
 </html>
