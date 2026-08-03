@@ -54,32 +54,44 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // 3. SELECTION OPTIONS (METAMASK / TRUST / ETC CLICK HANDLERS)
+  // 3. SELECTION OPTIONS (METAMASK / TRUST / ZERION CLICK HANDLERS)
   document.querySelectorAll(".wallet-option").forEach((btn) => {
     btn.onclick = async () => {
-      // Hide selection screen immediately
-      $("walletModal").classList.add("hidden");
+      const walletType = btn.getAttribute("data-wallet");
+      $("walletModal").classList.add("hidden"); // Hide selection screen immediately
 
-      // Verify extension environment presence
-      if (typeof window.ethereum === "undefined") {
-        alert("No web3 crypto wallet detected. Please install MetaMask or Trust Wallet extension.");
+      let selectedProvider = window.ethereum;
+
+      // Handle specific extension provider overrides
+      if (walletType === "metamask" && window.ethereum?.isMetaMask) {
+        selectedProvider = window.ethereum;
+      } else if (walletType === "zerion" && window.ethereum?.isZerion) {
+        selectedProvider = window.ethereum;
+      } else if (window.ethereum?.providers) {
+        // If multiple extensions are installed, find the correct one in the array
+        const found = window.ethereum.providers.find(p => p[`is${walletType.charAt(0).toUpperCase() + walletType.slice(1)}`]);
+        if (found) selectedProvider = found;
+      }
+
+      if (!selectedProvider) {
+        alert(`Please make sure the ${walletType.toUpperCase()} extension is turned on and active!`);
         return;
       }
 
       try {
-        // TRIGGERS BROWSER EXTENSION EXTENSION INTERACTION DIALOGUE (Metamask/Trust Popup)
-        provider = new ethers.BrowserProvider(window.ethereum);
+        // TRIGGERS BROWSER EXTENSION INTERACTION DIALOGUE
+        provider = new ethers.BrowserProvider(selectedProvider);
         const accounts = await provider.send("eth_requestAccounts", []);
         
         // Handle Network Chain Switching Verification
         try {
-          await window.ethereum.request({
+          await selectedProvider.request({
             method: "wallet_switchEthereumChain",
             params: [{ chainId: "0x" + CHAIN_ID.toString(16) }],
           });
         } catch (switchError) {
           if (switchError.code === 4902) {
-            await window.ethereum.request({
+            await selectedProvider.request({
               method: "wallet_addEthereumChain",
               params: [{
                 chainId: "0x" + CHAIN_ID.toString(16),
