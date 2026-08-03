@@ -1,4 +1,7 @@
+// Ensure Ethers mounts and unpacks all internal sub-classes safely for standard browsers
 const ethers = window.ethers;
+const BrowserProvider = window.ethers?.BrowserProvider || window.ethers?.providers?.BrowserProvider;
+const Contract = window.ethers?.Contract;
 
 // ====================== CONFIG ======================
 // IMPORTANT: Replace these with your actual smart contract addresses!
@@ -87,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        provider = new ethers.BrowserProvider(selectedProvider);
+        provider = new BrowserProvider(selectedProvider);
         const accounts = await provider.send("eth_requestAccounts", []);
         
         // Handle Network Chain Switching Verification
@@ -114,8 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
 
-        stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
-        nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
+        stakingContract = new Contract(STAKING_ADDRESS, STAKING_ABI, signer);
+        nftContract = new Contract(NFT_ADDRESS, NFT_ABI, signer);
 
         if ($("connectBtn")) {
           $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
