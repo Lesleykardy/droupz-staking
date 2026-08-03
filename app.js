@@ -62,22 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("connectBtn not found");
   }
 
-  // ...rest of your code...
-});
-  
-  // 1. OPEN CUSTOM SELECTION MODAL POPUP
-  if ($("connectBtn")) {
-    $("connectBtn").onclick = function () {
-      $("walletModal").classList.remove("hidden");
-    };
-  }
-
   // 2. CLOSE CUSTOM SELECTION MODAL POPUP
   if ($("closeModal")) {
     $("closeModal").onclick = function () {
       $("walletModal").classList.add("hidden");
     };
   }
+
+
+
 
   // 3. SELECTION OPTIONS (METAMASK / TRUST / ZERION CLICK HANDLERS)
   document.querySelectorAll(".wallet-option").forEach((btn) => {
