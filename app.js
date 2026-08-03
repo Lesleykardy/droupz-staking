@@ -38,15 +38,6 @@ const toast = (msg) => {
   setTimeout(() => t.classList.add("hidden"), 3500);
 };
 
-// Fallback logic if loadAllData() isn't fully defined yet in your script
-async function loadAllData() {
-  console.log("Loading user staking dashboard data...");
-  try {
-    if ($("stakedCount")) $("stakedCount").textContent = "0";
-    if ($("totalStaked")) $("totalStaked").textContent = "0";
-  } catch(e) { console.log(e); }
-}
-
 // ====================== MAIN EXECUTION BLOCK ======================
 document.addEventListener("DOMContentLoaded", () => {
   
@@ -67,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // 3. SELECTION OPTIONS (METAMASK / TRUST / ZERION CLICK HANDLERS)
   document.querySelectorAll(".wallet-option").forEach((btn) => {
     btn.onclick = async () => {
-      // Convert to lowercase to avoid HTML spelling bugs
       const walletType = btn.getAttribute("data-wallet").toLowerCase();
       $("walletModal").classList.add("hidden"); // Hide selection screen immediately
 
@@ -79,12 +69,11 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (walletType === "zerion" && window.ethereum?.isZerion) {
         selectedProvider = window.ethereum;
       } else if (window.ethereum?.providers) {
-        // Safe checking mapping for multiple extension multi-injections
         selectedProvider = window.ethereum.providers.find(p => {
           if (walletType === "metamask" && p.isMetaMask) return true;
           if (walletType === "zerion" && p.isZerion) return true;
           if (walletType === "trust" && p.isTrust) return true;
-          if (walletType === "okx" && p.isOKX) return true; // Fixed case issue
+          if (walletType === "okx" && p.isOKX) return true; 
           if (walletType === "rabby" && p.isRabby) return true;
           return false;
         }) || window.ethereum;
@@ -96,7 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // TRIGGERS BROWSER EXTENSION INTERACTION DIALOGUE
         provider = new ethers.BrowserProvider(selectedProvider);
         const accounts = await provider.send("eth_requestAccounts", []);
         
@@ -107,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
             params: [{ chainId: "0x" + CHAIN_ID.toString(16) }],
           });
         } catch (switchError) {
-          // If the network isn't added to the user's wallet yet, register it
           if (switchError.code === 4902 || switchError.data?.originalError?.code === 4902) {
             await selectedProvider.request({
               method: "wallet_addEthereumChain",
@@ -122,19 +109,12 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
 
-        // Initialize user contexts and contract references
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
-
-        // Safe setup checking for real hex addresses
-        if (STAKING_ADDRESS.startsWith("0x0000") || NFT_ADDRESS.startsWith("0x0000")) {
-          console.warn("Contracts initialized with dummy placeholder addresses.");
-        }
 
         stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
         nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
 
-        // Update Nav UI Elements
         if ($("connectBtn")) {
           $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
           $("connectBtn").classList.add("connected");
@@ -157,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 5. FUNCTIONAL TRANSACTION ACTIONS HANDLERS
+  // 5. STAKE ACTION HANDLER
   if ($("stakeBtn")) {
     $("stakeBtn").onclick = async () => {
       if (selectedToStake.size === 0) return toast("Select at least one NFT");
@@ -181,9 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
   }
-});
 
-  // 5. UNSTAKE SELECTED TOKENS ACTION HANDLER
+  // 6. UNSTAKE ACTION HANDLER
   if ($("unstakedBtn")) {
     $("unstakedBtn").onclick = async () => {
       if (selectedToUnstake.size === 0) return toast("Select NFTs to unstake");
@@ -202,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // 6. CLAIM ALL REWARDS ACTION HANDLER
+  // 7. CLAIM REWARDS ACTION HANDLER
   if ($("claimBtn")) {
     $("claimBtn").onclick = async () => {
       try {
@@ -223,7 +202,6 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadAllData() {
   if (!userAddress) return;
   try {
-    // 1. Fetch Contract Balance Data
     if ($("stakedCount")) {
       const stakedBal = await stakingContract.balanceOf(userAddress);
       $("stakedCount").textContent = stakedBal.toString();
@@ -233,7 +211,6 @@ async function loadAllData() {
       $("totalStaked").textContent = total.toString();
     }
 
-    // 2. Load Unstaked Wallet Inventory NFTs
     const walletGrid = $("nftGrid");
     if (walletGrid) {
       const balance = await nftContract.balanceOf(userAddress);
@@ -258,7 +235,6 @@ async function loadAllData() {
       }
     }
 
-    // 3. Load Active Staked Grid Items
     const stakedGrid = $("stakedGrid");
     if (stakedGrid) {
       const stakedIds = await stakingContract.getStakedTokens(userAddress);
@@ -282,7 +258,6 @@ async function loadAllData() {
       }
     }
 
-    // 4. Activate UI Buttons Once Data Loads
     if ($("stakeBtn")) $("stakeBtn").disabled = false;
     if ($("unstakedBtn")) $("unstakedBtn").disabled = false;
     if ($("claimBtn")) $("claimBtn").disabled = false;
@@ -292,7 +267,7 @@ async function loadAllData() {
   }
 }
 
-// ====================== INVENTORY GRID SELECTION SELECTION UTILITY ======================
+// ====================== SELECTION UTILITY ======================
 function toggleSelect(element, set) {
   const id = element.dataset.id;
   if (set.has(id)) {
@@ -303,3 +278,4 @@ function toggleSelect(element, set) {
     element.classList.add("selected");
   }
 }
+
