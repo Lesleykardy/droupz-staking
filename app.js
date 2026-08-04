@@ -47,23 +47,23 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded");
 
   if ($("connectBtn")) {
-    console.log("Found connect button");
+  console.log("Found connect button");
 
-    $("connectBtn").onclick = function () {
-      console.log("Connect button clicked");
+  $("connectBtn").onclick = function () {
+    console.log("Connect button clicked");
 
-      // If already connected, disconnect from the website
-       if (!$("walletModal")) {
 
-         userAddress = null;
-         provider = null;
-         signer = null;
-      
+    // If already connected, disconnect
+    if (isWalletConnected) {
 
-      isWallletConnected = false;
+      userAddress = null;
+      provider = null;
+      signer = null;
+
+      isWalletConnected = false;
 
       $("connectBtn").textContent = "Connect";
-      $("connectBtn").classList.remove("connected")
+      $("connectBtn").classList.remove("connected");
 
       const walletGrid = $("nftGrid");
       if (walletGrid) {
@@ -73,22 +73,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       toast("Wallet disconnected");
       return;
-    
-   }
+    }
 
-      // If not connected, open wallet selection
-      if (!$("walletModal")) {
-        console.error("walletModal not found")
-        return;
-      }
 
-      $("walletModal").classlist.remove("hidden");
-    };
+    // If not connected, open wallet selection
+    if (!$("walletModal")) {
+      console.error("walletModal not found");
+      return;
+    }
 
-  } else {
-    console.error("connectBtn not found");
-  }
-    
+    $("walletModal").classList.remove("hidden");
+  };
+
+} else {
+  console.error("connectBtn not found");
+}
 
   // 2. CLOSE CUSTOM SELECTION MODAL POPUP
   if ($("closeModal")) {
