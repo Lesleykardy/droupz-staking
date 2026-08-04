@@ -137,9 +137,17 @@ document.addEventListener("DOMContentLoaded", () => {
         $("connectBtn").classList.add("connected");
       }
 
-      toast("Wallet connected ✓");
+      // toast("Wallet connected ✓");
 
       // await loadAllData();
+      toast("Wallet connected ✓");
+
+    // TEST MODE
+    if ($("stakeBtn")) $("stakeBtn").disabled = false;
+    if ($("unstakedBtn")) $("unstakedBtn").disabled = false;
+    if ($("claimBtn")) $("claimBtn").disabled = false;
+
+    console.log("Test mode: buttons enabled");
 
     } catch (err) {
       console.error("User connection routine aborted:", err);
