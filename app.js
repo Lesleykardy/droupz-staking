@@ -29,7 +29,6 @@ let provider, signer, userAddress;
 let stakingContract, nftContract;
 let selectedToStake = new Set();
 let selectedToUnstake = new Set();
-let isWalletConnected = false;
 
 // ====================== HELPERS ======================
 const $ = (id) => document.getElementById(id);
@@ -47,47 +46,21 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded");
 
   if ($("connectBtn")) {
-  console.log("Found connect button");
+    console.log("Found connect button");
 
-  $("connectBtn").onclick = function () {
-    console.log("Connect button clicked");
+    $("connectBtn").onclick = function () {
+      console.log("Connect button clicked");
 
-
-    // If already connected, disconnect
-    if (isWalletConnected) {
-
-      userAddress = null;
-      provider = null;
-      signer = null;
-
-      isWalletConnected = false;
-
-      $("connectBtn").textContent = "Connect";
-      $("connectBtn").classList.remove("connected");
-
-      const walletGrid = $("nftGrid");
-      if (walletGrid) {
-        walletGrid.innerHTML =
-          '<div class="empty">Connect your wallet to load NFTs</div>';
+      if (!$("walletModal")) {
+        console.error("walletModal not found");
+        return;
       }
 
-      toast("Wallet disconnected");
-      return;
-    }
-
-
-    // If not connected, open wallet selection
-    if (!$("walletModal")) {
-      console.error("walletModal not found");
-      return;
-    }
-
-    $("walletModal").classList.remove("hidden");
-  };
-
-} else {
-  console.error("connectBtn not found");
-}
+      $("walletModal").classList.remove("hidden");
+    };
+  } else {
+    console.error("connectBtn not found");
+  }
 
   // 2. CLOSE CUSTOM SELECTION MODAL POPUP
   if ($("closeModal")) {
@@ -171,10 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if ($("connectBtn")) {
         $("connectBtn").textContent =
           userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
-
         $("connectBtn").classList.add("connected");
-
-        isWalletConnected = true;
       }
 
       // toast("Wallet connected ✓");
@@ -344,6 +314,8 @@ function toggleSelect(element, set) {
     element.classList.add("selected");
   }
 }
+
+
 
 
 
