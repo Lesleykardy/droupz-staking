@@ -74,106 +74,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 3. SELECTION OPTIONS (METAMASK / TRUST / ZERION CLICK HANDLERS)
   document.querySelectorAll(".wallet-option").forEach((btn) => {
-    btn.onclick = async () => {
-      const walletType = btn.getAttribute("data-wallet").toLowerCase();
-      $("walletModal").classList.add("hidden"); 
+  btn.onclick = async () => {
+    const walletType = btn.getAttribute("data-wallet").toLowerCase();
+    $("walletModal").classList.add("hidden");
 
-      let selectedProvider = null;
-    
-     const providers = window.ethereum?.providers || [window.ethereum];
+    try {
+      console.log("Selected wallet:", walletType);
 
-     for (const p of providers) {
+      if (!window.ethereum) {
+        alert("No wallet detected.");
+        return;
+      }
 
-      if (walletType === "metamask" && p.isMetaMask) {
-       selectedProvider = p;
-      break;
-    }
+      provider = new ethers.BrowserProvider(window.ethereum);
 
-    if (walletType === "zerion" && p.isZerion) {
-      selectedProvider = p;
-     break;
-   }
+      await provider.send("eth_requestAccounts", []);
 
-   if (walletType === "trust" && p.isTrust) {
-     selectedProvider = p;
-     break;
-   }
+      signer = await provider.getSigner();
+      userAddress = await signer.getAddress();
 
-   if (walletType === "rabby" && p.isRabby) {
-     selectedProvider = p;
-     break;
-   }
-
-   if (walletType === "okx" && p.isOKX) {
-     selectedProvider = p;
-     break;
-   }
- }
-
-  if (!selectedProvider) {
-   console.error("Wallet not detected:", walletType);
-   alert(`${walletType} wallet not installed`);
-   return;
-  }
-      
+      console.log("Connected:", userAddress);
 
       try {
-        console.log("Selected wallet:", walletType);
-        console.log("window.ethereum:", window.ethereum);
-        console.log("Selected provider:", selectedProvider);
-        provider = new ethers.BrowserProvider(selectedProvider);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        
-        try {
-          await selectedProvider.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x" + CHAIN_ID.toString(16) }],
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x" + CHAIN_ID.toString(16) }],
+        });
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0x" + CHAIN_ID.toString(16),
+              chainName: "Robinhood Chain",
+              rpcUrls: [RPC_URL],
+              nativeCurrency: {
+                name: "ETH",
+                symbol: "ETH",
+                decimals: 18
+              },
+              blockExplorerUrls: ["https://blockscout.com"]
+            }]
           });
-        } catch (switchError) {
-          if (switchError.code === 4902 || switchError.data?.originalError?.code === 4902) {
-            await selectedProvider.request({
-              method: "wallet_addEthereumChain",
-              params: [{
-                chainId: "0x" + CHAIN_ID.toString(16),
-                chainName: "Robinhood Chain",
-                rpcUrls: [RPC_URL],
-                nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-                blockExplorerUrls: ["https://blockscout.com"],
-              }],
-            });
-          }
         }
-
-        signer = await provider.getSigner();
-        userAddress = await signer.getAddress();
-
-        if (STAKING_ADDRESS.startsWith("0x0000") || NFT_ADDRESS.startsWith("0x0000")) {
-          if ($("connectBtn")) {
-            $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
-            $("connectBtn").classList.add("connected");
-          }
-          toast("Wallet connected ✓ (Demo mode)");
-          return; 
-        }
-
-        stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
-        nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, signer);
-
-        if ($("connectBtn")) {
-          $("connectBtn").textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
-          $("connectBtn").classList.add("connected");
-        }
-
-        toast("Wallet connected ✓");
-        await loadAllData();
-        
-      } catch (err) {
-        console.error("User connection routine aborted:", err);
-        toast("Connection rejected");
       }
-    };
-  });
 
+      // stakingContract = new ethers.Contract(
+        // STAKING_ADDRESS,
+        // STAKING_ABI,
+        // signer
+      // );
+
+      // nftContract = new ethers.Contract(
+      //   NFT_ADDRESS,
+      //   NFT_ABI,
+      //   signer
+      // );
+
+      if ($("connectBtn")) {
+        $("connectBtn").textContent =
+          userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+        $("connectBtn").classList.add("connected");
+      }
+
+      toast("Wallet connected ✓");
+
+      // await loadAllData();
+
+    } catch (err) {
+      console.error("User connection routine aborted:", err);
+      toast("Connection rejected");
+    }
+  };
+});
   // 4. CLOSING INTERACTION SYSTEMS
   window.addEventListener("click", (e) => {
     if (e.target === $("walletModal")) {
