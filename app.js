@@ -2,21 +2,6 @@ import { ethers } from "https://esm.sh/ethers@6";
 
 console.log("app.js loaded");
 
-window.addEventListener(
-  "eip6963:announceProvider",
-  (event) => {
-    console.log(
-      "Wallet found:",
-      event.detail.info
-    );
-  }
-);
-
-
-window.dispatchEvent(
-  new Event("eip6963:requestProvider")
-);
-
 // ====================== CONFIG ======================
 const NFT_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167"; 
 const STAKING_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167";
