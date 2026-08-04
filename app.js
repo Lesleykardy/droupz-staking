@@ -90,6 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       await provider.send("eth_requestAccounts", []);
 
+      // new code
+      const accounts = await provider.send("eth_accounts", []);
+
+     console.log("Accounts:", accounts);
+      // 
+
       signer = await provider.getSigner();
       userAddress = await signer.getAddress();
 
