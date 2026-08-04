@@ -3,19 +3,12 @@ import { ethers } from "https://esm.sh/ethers@6";
 console.log("app.js loaded");
 
 // ====================== CONFIG ======================
-
-// Temporary test addresses
-const NFT_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167";
+const NFT_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167"; 
 const STAKING_ADDRESS = "0xfd7a3fc37d607bc0364165dbb0d0741949c09167";
-
-// Robinhood Chain
-const CHAIN_ID = 4663;
-
-// Placeholder RPC (replace with the real RPC later)
+const CHAIN_ID = 4663; // Robinhood Chain
 const RPC_URL = "https://robinhood.com";
 
 // ====================== ABIs ======================
-
 const STAKING_ABI = [
   "function stake(uint256[] tokenIds)",
   "function unstake(uint256[] tokenIds)",
@@ -24,7 +17,6 @@ const STAKING_ABI = [
   "function totalStaked() view returns (uint256)",
   "function getStakedTokens(address) view returns (uint256[])"
 ];
-
 const NFT_ABI = [
   "function balanceOf(address) view returns (uint256)",
   "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
@@ -32,275 +24,138 @@ const NFT_ABI = [
   "function setApprovalForAll(address operator, bool approved)"
 ];
 
-
 // ====================== STATE ======================
-
-let provider = null;
-let signer = null;
-let userAddress = null;
-
-let stakingContract = null;
-let nftContract = null;
-
+let provider, signer, userAddress;
+let stakingContract, nftContract;
 let selectedToStake = new Set();
 let selectedToUnstake = new Set();
-
 let isWalletConnected = false;
 
 // ====================== HELPERS ======================
-
 const $ = (id) => document.getElementById(id);
 
-function toast(message) {
-    const t = $("toast");
-    if (!t) return;
-
-    t.textContent = message;
-    t.classList.remove("hidden");
-
-    setTimeout(() => {
-        t.classList.add("hidden");
-    }, 3500);
-}
-
-// ====================== MAIN EXECUTION BLOCK ======================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    console.log("DOM loaded");
-
-    const connectBtn = $("connectBtn");
-
-    if (!connectBtn) {
-        console.error("connectBtn not found");
-        return;
-    }
-
-    console.log("Found connect button");
-
-    connectBtn.onclick = () => {
-
-        console.log("Connect button clicked");
-
-        // Disconnect
-        if (isWalletConnected) {
-
-            provider = null;
-            signer = null;
-            userAddress = null;
-
-            stakingContract = null;
-            nftContract = null;
-
-            selectedToStake.clear();
-            selectedToUnstake.clear();
-
-            isWalletConnected = false;
-
-            connectBtn.textContent = "Connect Wallet";
-            connectBtn.classList.remove("connected");
-
-            if ($("nftGrid")) {
-                $("nftGrid").innerHTML =
-                    '<div class="empty">Connect your wallet to load NFTs</div>';
-            }
-
-            if ($("stakedGrid")) {
-                $("stakedGrid").innerHTML =
-                    '<div class="empty">No NFTs staked yet</div>';
-            }
-
-            toast("Wallet disconnected");
-
-            return;
-        }
-
-        // Open wallet modal
-        const modal = $("walletModal");
-
-        if (!modal) {
-            console.error("walletModal not found");
-            return;
-        }
-
-        modal.classList.remove("hidden");
-    };
-
-              toast("Wallet disconnected");
-        return;
-    }
-
-    // ======================
-    // OPEN WALLET MODAL
-    // ======================
-
-    const modal = $("walletModal");
-
-    if (!modal) {
-        console.error("walletModal not found");
-        return;
-    }
-
-    modal.classList.remove("hidden");
+const toast = (msg) => {
+  const t = $("toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove("hidden");
+  setTimeout(() => t.classList.add("hidden"), 3500);
 };
 
-// ======================
-// CLOSE WALLET MODAL
-// ======================
+// ====================== MAIN EXECUTION BLOCK ======================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded");
 
-const closeModal = $("closeModal");
+  if ($("connectBtn")) {
+    console.log("Found connect button");
 
-if (closeModal) {
-    closeModal.onclick = () => {
-        $("walletModal").classList.add("hidden");
+    $("connectBtn").onclick = function () {
+      console.log("Connect button clicked");
+
+      // If already connected, disconnect from the website
+       if (!$("walletModal")) {
+
+         userAddress = null;
+         provider = null;
+         signer = null;
+      
+
+      isWallletConnected = false;
+
+      $("connectBtn").textContent = "Connect";
+      $("connectBtn").classList.remove("connected")
+
+      const walletGrid = $("nftGrid");
+      if (walletGrid) {
+        walletGrid.innerHTML =
+          '<div class="empty">Connect your wallet to load NFTs</div>';
+      }
+
+      toast("Wallet disconnected");
+      return;
+    
+   }
+
+      // If not connected, open wallet selection
+      if (!$("walletModal")) {
+        console.error("walletModal not found")
+        return;
+      }
+
+      $("walletModal").classlist.remove("hidden");
     };
-}
+
+  } else {
+    console.error("connectBtn not found");
+  }
+    
+
+  // 2. CLOSE CUSTOM SELECTION MODAL POPUP
+  if ($("closeModal")) {
+    $("closeModal").onclick = function () {
+      $("walletModal").classList.add("hidden");
+    };
+  }
 
 
-// ======================
-// WALLET SELECTION
-// ======================
 
-document.querySelectorAll(".wallet-option").forEach((btn) => {
 
-    btn.onclick = async () => {
+  // 3. SELECTION OPTIONS (METAMASK / TRUST / ZERION CLICK HANDLERS)
+  document.querySelectorAll(".wallet-option").forEach((btn) => {
+  btn.onclick = async () => {
+    const walletType = btn.getAttribute("data-wallet").toLowerCase();
+    $("walletModal").classList.add("hidden");
 
-        const walletType = btn.dataset.wallet.toLowerCase();
+    try {
+      console.log("Selected wallet:", walletType);
 
-        $("walletModal").classList.add("hidden");
+      if (!window.ethereum) {
+        alert("No wallet detected.");
+        return;
+      }
 
-        try {
+      provider = new ethers.BrowserProvider(window.ethereum);
 
-            console.log("Selected wallet:", walletType);
+      await provider.send("eth_requestAccounts", []);
 
-            if (!window.ethereum) {
-                toast("No wallet detected");
-                return;
-            }
+      signer = await provider.getSigner();
+      userAddress = await signer.getAddress();
 
-            const providers = window.ethereum.providers || [window.ethereum];
+      console.log("Connected:", userAddress);
 
-            let selectedProvider = null;
+      const walletGrid = $("nftGrid");
 
-            for (const p of providers) {
+      if (walletGrid) {
+      walletGrid.innerHTML = `
+     <div class="empty">
+       No NFTs found in this wallet
+     </div>
+   `;
+  }
 
-                switch (walletType) {
-
-                    case "metamask":
-                        if (p.isMetaMask) selectedProvider = p;
-                        break;
-
-                    case "trust":
-                        if (p.isTrust) selectedProvider = p;
-                        break;
-
-                    case "zerion":
-                        if (p.isZerion) selectedProvider = p;
-                        break;
-
-                    // These wallets usually inject differently or require SDKs.
-                    // For now they'll fall back to the default injected provider.
-
-                    case "okx":
-                    case "rabby":
-                    case "walletconnect":
-                        selectedProvider = p;
-                        break;
-                }
-
-                if (selectedProvider) break;
-            }
-
-            if (!selectedProvider) {
-                toast(`${walletType} wallet not detected`);
-                return;
-            }
-
-            console.log("Using provider:", selectedProvider);
-
-            provider = new ethers.BrowserProvider(selectedProvider);
-
-            await provider.send("eth_requestAccounts", []);
-
-            signer = await provider.getSigner();
-            userAddress = await signer.getAddress();
-
-            console.log("Connected:", userAddress);
-
-            // Create contract instances
-            stakingContract = new ethers.Contract(
-                STAKING_ADDRESS,
-                STAKING_ABI,
-                signer
-            );
-
-            nftContract = new ethers.Contract(
-                NFT_ADDRESS,
-                NFT_ABI,
-                signer
-            );
-
-            isWalletConnected = true;
-
-            const connectBtn = $("connectBtn");
-
-            if (connectBtn) {
-                connectBtn.textContent =
-                    `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-
-                connectBtn.classList.add("connected");
-            }
-
-            if ($("stakeBtn")) $("stakeBtn").disabled = false;
-            if ($("unstakedBtn")) $("unstakedBtn").disabled = false;
-            if ($("claimBtn")) $("claimBtn").disabled = false;
-
-            toast("Wallet connected ✓");
-
-            // Load NFT data
-            await loadAllData();
-
-        } catch (err) {
-
-            console.error("Wallet connection failed:", err);
-
-            toast("Connection rejected");
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x" + CHAIN_ID.toString(16) }],
+        });
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0x" + CHAIN_ID.toString(16),
+              chainName: "Robinhood Chain",
+              rpcUrls: [RPC_URL],
+              nativeCurrency: {
+                name: "ETH",
+                symbol: "ETH",
+                decimals: 18
+              },
+              blockExplorerUrls: ["https://blockscout.com"]
+            }]
+          });
         }
-
-    };
-
-});
-
-
-    // Enable action buttons
-            if ($("stakeBtn")) {
-                $("stakeBtn").disabled = false;
-            }
-
-            if ($("unstakedBtn")) {
-                $("unstakedBtn").disabled = false;
-            }
-
-            if ($("claimBtn")) {
-                $("claimBtn").disabled = false;
-            }
-
-            toast("Wallet connected ✓");
-
-            // Load wallet NFTs and staking data
-            await loadAllData();
-
-        } catch (err) {
-
-            console.error("Wallet connection failed:", err);
-
-            toast("Connection rejected");
-        }
-
-    };
-
-});
-
+      }
 
       // stakingContract = new ethers.Contract(
         // STAKING_ADDRESS,
@@ -313,326 +168,185 @@ document.querySelectorAll(".wallet-option").forEach((btn) => {
       //   NFT_ABI,
       //   signer
       // );
-  
 
+      if ($("connectBtn")) {
+        $("connectBtn").textContent =
+          userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
 
-// ======================
-// CLOSE MODAL WHEN CLICKING OUTSIDE
-// ======================
+        $("connectBtn").classList.add("connected");
 
-window.addEventListener("click", (e) => {
-    const modal = $("walletModal");
+        isWalletConnected = true;
+      }
 
-    if (e.target === modal) {
-        modal.classList.add("hidden");
-    }
-});
+      // toast("Wallet connected ✓");
 
-// ======================
-// STAKE ACTION
-// ======================
+      // await loadAllData();
+      toast("Wallet connected ✓");
 
-const stakeBtn = $("stakeBtn");
+    // TEST MODE
+    if ($("stakeBtn")) $("stakeBtn").disabled = false;
+    if ($("unstakedBtn")) $("unstakedBtn").disabled = false;
+    if ($("claimBtn")) $("claimBtn").disabled = false;
 
-if (stakeBtn) {
-
-    stakeBtn.onclick = async () => {
-
-        if (!stakingContract || !nftContract) {
-            toast("Please connect your wallet first");
-            return;
-        }
-
-        if (selectedToStake.size === 0) {
-            toast("Select at least one NFT");
-            return;
-        }
-
-        try {
-
-            const approved = await nftContract.isApprovedForAll(
-                userAddress,
-                STAKING_ADDRESS
-            );
-
-            if (!approved) {
-
-                toast("Approving collection...");
-
-                const approvalTx = await nftContract.setApprovalForAll(
-                    STAKING_ADDRESS,
-                    true
-                );
-
-                await approvalTx.wait();
-            }
-
-            const tokenIds = [...selectedToStake].map(id => BigInt(id));
-
-            toast("Staking NFTs...");
-
-            const stakeTx = await stakingContract.stake(tokenIds);
-
-            await stakeTx.wait();
-
-            toast("NFTs staked successfully 🍾");
-
-            selectedToStake.clear();
-
-            await loadAllData();
-
-        } catch (err) {
-
-            console.error("Stake error:", err);
-
-            toast("Stake failed");
-        }
-
-    };
-
-}
-
-// ======================
-// UNSTAKE ACTION
-// ======================
-
-const unstakeBtn = $("unstakedBtn");
-
-if (unstakeBtn) {
-
-    unstakeBtn.onclick = async () => {
-
-        if (!stakingContract) {
-            toast("Please connect your wallet first");
-            return;
-        }
-
-        if (selectedToUnstake.size === 0) {
-            toast("Select NFTs to unstake");
-            return;
-        }
-
-        try {
-
-            const tokenIds = [...selectedToUnstake].map(id => BigInt(id));
-
-            toast("Unstaking NFTs...");
-
-            const tx = await stakingContract.unstake(tokenIds);
-
-            await tx.wait();
-
-            selectedToUnstake.clear();
-
-            toast("NFTs unstaked!");
-
-            await loadAllData();
-
-        } catch (err) {
-
-            console.error("Unstake error:", err);
-
-            toast("Unstake failed");
-        }
-
-    };
-
-}
-
-// ======================
-// CLAIM REWARDS
-// ======================
-
-const claimBtn = $("claimBtn");
-
-if (claimBtn) {
-
-    claimBtn.onclick = async () => {
-
-        if (!stakingContract) {
-            toast("Please connect your wallet first");
-            return;
-        }
-
-        try {
-
-            toast("Claiming rewards...");
-
-            const tx = await stakingContract.claimAll();
-
-            await tx.wait();
-
-            toast("Rewards claimed!");
-
-            await loadAllData();
-
-        } catch (err) {
-
-            console.error("Claim error:", err);
-
-            toast("Claim failed");
-        }
-
-    };
-
-}
-
-}); // END DOMContentLoaded
-
-// ======================
-// LOAD NFT DATA
-// ======================
-
-async function loadAllData() {
-
-    if (!userAddress || !stakingContract || !nftContract) {
-        return;
-    }
-
-    try {
-
-        // Staked balance
-        if ($("stakedCount")) {
-            const balance = await stakingContract.balanceOf(userAddress);
-            $("stakedCount").textContent = balance.toString();
-        }
-
-        // Total staked
-        if ($("totalStaked")) {
-            const total = await stakingContract.totalStaked();
-            $("totalStaked").textContent = total.toString();
-        }
-
-        // ---------------- Wallet NFTs ----------------
-
-        const walletGrid = $("nftGrid");
-
-        if (walletGrid) {
-
-            walletGrid.innerHTML = "";
-
-            const balance = Number(
-                await nftContract.balanceOf(userAddress)
-            );
-
-            if (balance === 0) {
-
-                walletGrid.innerHTML =
-                    '<div class="empty">You have no NFTs in this wallet</div>';
-
-            } else {
-
-                for (let i = 0; i < balance; i++) {
-
-                    const tokenId = await nftContract.tokenOfOwnerByIndex(
-                        userAddress,
-                        i
-                    );
-
-                    const card = document.createElement("div");
-
-                    card.className = "nft-item";
-                    card.dataset.id = tokenId.toString();
-
-                    card.innerHTML = `
-                        <div style="width:100%;height:100%;background:#1a1a24;display:flex;align-items:center;justify-content:center;min-height:120px;border-radius:8px;">
-                            #${tokenId}
-                        </div>
-
-                        <div class="token-id">
-                            #${tokenId}
-                        </div>
-                    `;
-
-                    card.onclick = () =>
-                        toggleSelect(card, selectedToStake);
-
-                    walletGrid.appendChild(card);
-
-                }
-
-            }
-
-        }
-
-        // ---------------- Staked NFTs ----------------
-
-        const stakedGrid = $("stakedGrid");
-
-        if (stakedGrid) {
-
-            stakedGrid.innerHTML = "";
-
-            const stakedIds =
-                await stakingContract.getStakedTokens(userAddress);
-
-            if (stakedIds.length === 0) {
-
-                stakedGrid.innerHTML =
-                    '<div class="empty">No NFTs currently staked</div>';
-
-            } else {
-
-                stakedIds.forEach((id) => {
-
-                    const card = document.createElement("div");
-
-                    card.className = "nft-item";
-                    card.dataset.id = id.toString();
-
-                    card.innerHTML = `
-                        <div style="width:100%;height:100%;background:#1a1a24;display:flex;align-items:center;justify-content:center;min-height:120px;border-radius:8px;">
-                            #${id}
-                        </div>
-
-                        <div class="token-id">
-                            #${id}
-                        </div>
-                    `;
-
-                    card.onclick = () =>
-                        toggleSelect(card, selectedToUnstake);
-
-                    stakedGrid.appendChild(card);
-
-                });
-
-            }
-
-        }
+    console.log("Test mode: buttons enabled");
 
     } catch (err) {
+      console.error("User connection routine aborted:", err);
+      toast("Connection rejected");
+    }
+  };
+});
+  // 4. CLOSING INTERACTION SYSTEMS
+  window.addEventListener("click", (e) => {
+    if (e.target === $("walletModal")) {
+      $("walletModal").classList.add("hidden");
+    }
+  });
 
-        console.error("Load error:", err);
+  // 5. STAKE ACTION HANDLER
+  if ($("stakeBtn")) {
+    $("stakeBtn").onclick = async () => {
+      if (selectedToStake.size === 0) return toast("Select at least one NFT");
+      try {
+        const approved = await nftContract.isApprovedForAll(userAddress, STAKING_ADDRESS);
+        if (!approved) {
+          toast("Approving collection...");
+          const tx = await nftContract.setApprovalForAll(STAKING_ADDRESS, true);
+          await tx.wait();
+        }
+        const ids = Array.from(selectedToStake).map((id) => BigInt(id));
+        toast("Staking...");
+        const tx = await stakingContract.stake(ids);
+        await tx.wait();
+        toast("Staked successfully! 🍾");
+        selectedToStake.clear();
+        await loadAllData();
+      } catch (e) {
+        console.error(e);
+        toast("Stake failed");
+      }
+    };
+  }
 
-        toast("Error loading NFTs");
+  // 6. UNSTAKE ACTION HANDLER
+  if ($("unstakedBtn")) {
+    $("unstakedBtn").onclick = async () => {
+      if (selectedToUnstake.size === 0) return toast("Select NFTs to unstake");
+      try {
+        const ids = Array.from(selectedToUnstake).map((id) => BigInt(id));
+        toast("Unstaking...");
+        const tx = await stakingContract.unstake(ids);
+        await tx.wait();
+        toast("Unstaked!");
+        selectedToUnstake.clear();
+        await loadAllData();
+      } catch (e) {
+        console.error(e);
+        toast("Unstake failed");
+      }
+    };
+  }
 
+  // 7. CLAIM REWARDS ACTION HANDLER
+  if ($("claimBtn")) {
+    $("claimBtn").onclick = async () => {
+      try {
+        toast("Claiming rewards...");
+        const tx = await stakingContract.claimAll();
+        await tx.wait();
+        toast("Rewards claimed!");
+        await loadAllData();
+      } catch (e) {
+        console.error(e);
+        toast("Claim failed");
+      }
+    };
+  }
+});
+
+// ====================== BACKEND TOKEN LOAD LOGIC ======================
+async function loadAllData() {
+  if (!userAddress || !stakingContract || !nftContract) return;
+  try {
+    if ($("stakedCount")) {
+      const stakedBal = await stakingContract.balanceOf(userAddress);
+      $("stakedCount").textContent = stakedBal.toString();
+    }
+    if ($("totalStaked")) {
+      const total = await stakingContract.totalStaked();
+      $("totalStaked").textContent = total.toString();
     }
 
-}
-
-// ======================
-// NFT SELECTION
-// ======================
-
-function toggleSelect(element, selectionSet) {
-
-    const id = element.dataset.id;
-
-    if (selectionSet.has(id)) {
-
-        selectionSet.delete(id);
-
-        element.classList.remove("selected");
-
-    } else {
-
-        selectionSet.add(id);
-
-        element.classList.add("selected");
-
+    const walletGrid = $("nftGrid");
+    if (walletGrid) {
+      const balance = await nftContract.balanceOf(userAddress);
+      walletGrid.innerHTML = "";
+      if (Number(balance) === 0) {
+        walletGrid.innerHTML = '<div class="empty">You have no NFTs in this wallet</div>';
+      } else {
+        for (let i = 0; i < Number(balance); i++) {
+          const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
+          const div = document.createElement("div");
+          div.className = "nft-item";
+          div.dataset.id = tokenId.toString();
+          div.innerHTML = `
+            <div style="width:100%;height:100%;background:#1a1a24;display:flex;align-items:center;justify-content:center;font-size:1.1rem;min-height:120px;border-radius:8px;">
+              #${tokenId}
+            </div>
+            <div class="token-id">#${tokenId}</div>
+          `;
+          div.onclick = () => toggleSelect(div, selectedToStake);
+          walletGrid.appendChild(div);
+        }
+      }
     }
 
+    const stakedGrid = $("stakedGrid");
+    if (stakedGrid) {
+      const stakedIds = await stakingContract.getStakedTokens(userAddress);
+      stakedGrid.innerHTML = "";
+      if (stakedIds.length === 0) {
+        stakedGrid.innerHTML = '<div class="empty">No NFTs currently staked</div>';
+      } else {
+        stakedIds.forEach((id) => {
+          const div = document.createElement("div");
+          div.className = "nft-item";
+          div.dataset.id = id.toString();
+          div.innerHTML = `
+            <div style="width:100%;height:100%;background:#1a1a24;display:flex;align-items:center;justify-content:center;font-size:1.1rem;min-height:120px;border-radius:8px;">
+              #${id}
+            </div>
+            <div class="token-id">#${id}</div>
+          `;
+          div.onclick = () => toggleSelect(div, selectedToUnstake);
+          stakedGrid.appendChild(div);
+        });
+      }
+    }
+
+    if ($("stakeBtn")) $("stakeBtn").disabled = false;
+    if ($("unstakedBtn")) $("unstakedBtn").disabled = false;
+    if ($("claimBtn")) $("claimBtn").disabled = false;
+  } catch (err) {
+    console.error("Load error:", err);
+    toast("Error loading NFTs");
+  }
 }
+
+// ====================== SELECTION UTILITY ======================
+function toggleSelect(element, set) {
+  const id = element.dataset.id;
+
+  if (set.has(id)) {
+    set.delete(id);
+    element.classList.remove("selected");
+  } else {
+    set.add(id);
+    element.classList.add("selected");
+  }
+}
+
+
+
 
 
