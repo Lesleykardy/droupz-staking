@@ -95,6 +95,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("Connected:", userAddress);
 
+      const walletGrid = $("nftGrid");
+
+      if (walletGrid) {
+      walletGrid.innerHTML = `
+     <div class="empty">
+       No NFTs found in this wallet
+     </div>
+   `;
+  }
+
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
